@@ -1,15 +1,24 @@
 package sevices
 
 import (
+	"bufio"
 	"fmt"
 	"library_management/models"
+	"os"
 	"regexp"
+	"strings"
 )
 
+func getInput(prompt string ,r *bufio.Reader)(string,error){
+    fmt.Print(prompt)
+    input,err :=r.ReadString('\n')
+    return strings.TrimSpace(input),err
+}
+
 func helper(name string) string {
-	re := regexp.MustCompile(`^[a-zA-Z\s]+$`)
+	re := regexp.MustCompile(`^[a-zA-Z\s]+(,[a-zA-Z\s]+)*$`)
 	for !re.MatchString(name) {
-		fmt.Print("Enter valid  author:  ")
+		fmt.Print("Enter valid  author, if they are multiple separatethem by comma   ")
 		_, _ = fmt.Scanln(&name)
 
 	}
@@ -25,9 +34,19 @@ func findIndex(slice []models.Book, target models.Book) int {
 	// Return -1 if the target is not found in the slice
 	return -1
 }
+type LIBRARY struct{
 
-var bookStore map[int]models.Book
-var members map[int]models.Member
+	bookStore map[int]models.Book
+	members map[int]models.Member
+}
+var newlib LIBRARY
+
+func Newlibrary (){
+	newlib.bookStore =make(map[int]models.Book)
+	newlib.members =make(map[int]models.Member)
+
+}
+
 
 func AddBook(book models.Book) string {
 	fmt.Println("Enter book ID:  ")
@@ -40,26 +59,24 @@ lable:
 	}
 	book.Id = id
 
-	fmt.Print("Enter the book title:  ")
 	var title string
-	_, _ = fmt.Scanln(&title)
+	reader := bufio.NewReader(os.Stdin)
+    title,_ = getInput("Enter the book title:  ",reader)	
 	book.Title = title
 
-	fmt.Print("Enter  author of the book:  ")
 	var author string
-	_, _ = fmt.Scanln(&author)
-	book.Author = helper(title)
-
+	author,_ = getInput("Enter  author of the book:  ",reader)
+	book.Author = helper(author)
 	book.Status = "Available"
-	bookStore[book.Id] = book
+	newlib.bookStore[book.Id] = book
 
 	return "The book is added succesfully :"
 
 }
 
 func RemoveBook(bookID int) string {
-	if _, ok := bookStore[bookID]; ok {
-		delete(bookStore, bookID)
+	if _, ok := newlib.bookStore[bookID]; ok {
+		delete(newlib.bookStore, bookID)
 		return "The book succesfully removed:  "
 
 	} else {
@@ -69,48 +86,49 @@ func RemoveBook(bookID int) string {
 
 }
 func BorrowBook(bookID int, memberid int) string {
-	if _, ok := members[memberid]; !ok {
-		fmt.Print("Enter your name to register:  ")
+	newlib.members = make(map[int]models.Member)
+	if _, ok := newlib.members[memberid]; !ok {
+
 		var name string
-		_, _ = fmt.Scanln(&name)
+		reader := bufio.NewReader(os.Stdin)
+    	name,_ = getInput("Enter your name to register:  ",reader)	
 		newMember := models.Member{}
 		newMember.Name = helper(name)
 		newMember.Id = memberid
-		members[memberid] = newMember
+		newlib.members[memberid] = newMember
 
 	}
-	if _, ok := bookStore[bookID]; ok {
-		if bookStore[bookID].Status == "Borrowed" {
-			return "The book is not available now:  "
-		}
-
-		mem := members[memberid]
-		mem.BorrowedBooks = append(mem.BorrowedBooks, bookStore[bookID])
-		boo := bookStore[bookID]
-		boo.Status = "Borrowed"
-		bookStore[bookID] = boo
-		return "succesfully borowed"
-
-	} else {
+	if _, ok := newlib.bookStore[bookID]; !ok {
 		return ("The book doesnot exist:  ")
 
 	}
+
+	if newlib.bookStore[bookID].Status == "Borrowed" {
+		return "The book is not available now:  "
+	}
+
+	mem := newlib.members[memberid]
+	mem.BorrowedBooks = append(mem.BorrowedBooks, newlib.bookStore[bookID])
+	boo := newlib.bookStore[bookID]
+	boo.Status = "Borrowed"
+	newlib.bookStore[bookID] = boo
+	return `succesfully borrowed`
 
 }
 func ReturnBook(bookid int, memberid int) string {
-	if _, ok := members[memberid]; !ok {
+	if _, ok := newlib.members[memberid]; !ok {
 		return ("You are not a member :  ")
 
 	}
-	if _, ok := bookStore[bookid]; !ok {
+	if _, ok := newlib.bookStore[bookid]; !ok {
 		return ("The book doesnot exist:  ")
 
 	}
 
-	if bookStore[bookid].Status == "Borrowed" {
-		mem := members[memberid]
+	if newlib.bookStore[bookid].Status == "Borrowed" {
+		mem := newlib.members[memberid]
 		borrowed := mem.BorrowedBooks
-		boo := bookStore[bookid]
+		boo := newlib.bookStore[bookid]
 		idx := findIndex(mem.BorrowedBooks, boo)
 		if idx == -1 {
 			return "Sorry you didn't borrow it here!:  "
@@ -118,7 +136,7 @@ func ReturnBook(bookid int, memberid int) string {
 
 		mem.BorrowedBooks = append(borrowed[:idx], borrowed[idx+1:]...)
 		boo.Status = "Available"
-		bookStore[bookid] = boo
+		newlib.bookStore[bookid] = boo
 		return "succesfully returned :  "
 
 	}
@@ -128,23 +146,24 @@ func ReturnBook(bookid int, memberid int) string {
 }
 func ListAvailableBooks() []models.Book {
 	var availableBooks []models.Book
-	for _, book := range bookStore {
-		if book.Status == "available" {
+	for _, book := range newlib.bookStore {
+		if book.Status == "Available" {	
 			availableBooks = append(availableBooks, book)
 		}
 	}
+	
 	return availableBooks
 
 }
 func Checker(memberID int) bool {
-	if _, ok := members[memberID]; !ok {
+	if _, ok := newlib.members[memberID]; !ok {
 		return false
 	}
 	return true
 }
 func ListBorrowedBooks(memberID int) []models.Book {
 
-	borrowed := members[memberID]
+	borrowed := newlib.members[memberID]
 	return borrowed.BorrowedBooks
 
 }

@@ -20,21 +20,27 @@ func Controller() {
 	fmt.Println("Enter 4 to Return Book: ")
 	fmt.Println("Enter 5 to get List of Available Books:")
 	fmt.Println("Enter 6 to  get List Borrowed Books:")
+	fmt.Println("Enter 0 to exit the Program:")
 	fmt.Println("========================")
 
-lable1:
+    lable1:
 	fmt.Print("Please enter your choice: ")
 	var input int
 	_, err := fmt.Scanln(&input)
-	if err != nil || input > 6 || input < 1 {
-		fmt.Print("Invalid !!!\n")
-		goto lable1
+	
+	if err != nil || input > 6 || input < 0 {
+		fmt.Println("Invalid !!")
+		Controller()
 	}
 	switch input {
+	case 0:
+		fmt.Println("The program succesfully closed:")
+	
 	case 1:
 		fmt.Println("You chose to Add a Book.")
 		newBook := models.Book{}
-		fmt.Println(sevices.AddBook(newBook))
+		fmt.Print("\n\n",sevices.AddBook(newBook),"\n\n")
+		Controller()
 
 	case 2:
 		fmt.Println("You chose to Remove a Book.")
@@ -46,12 +52,14 @@ lable1:
 			fmt.Print("Invalid id please enter integer only:  ")
 			goto lable
 		}
-		fmt.Println(sevices.RemoveBook(id))
+		fmt.Print("\n\n",sevices.RemoveBook(id),"\n\n")
+	    Controller()
 
 	case 3:
 		fmt.Println("You chose to Borrow a Book.")
 		fmt.Println("Enter book ID:  ")
 		var id int
+		
 	lable4:
 		_, err := fmt.Scanln(&id)
 		if err != nil {
@@ -67,8 +75,8 @@ lable1:
 			fmt.Print("Invalid id please enter integer only:  ")
 			goto lable5
 		}
-		fmt.Println(sevices.BorrowBook(id, memberid))
-
+		fmt.Print("\n\n",sevices.BorrowBook(id, memberid),"\n\n")
+		Controller()
 	case 4:
 		fmt.Println("You choose to Return a Book.")
 
@@ -89,12 +97,12 @@ lable1:
 			fmt.Print("Invalid id please enter integer only:  ")
 			goto lable7
 		}
-		fmt.Println(sevices.ReturnBook(id, memberid))
-
+		fmt.Print("\n\n",sevices.ReturnBook(id, memberid),"\n\n")
+		Controller()
 	case 5:
 		fmt.Println("You chose to List Available Books.")
-		fmt.Println(sevices.ListAvailableBooks())
-
+		fmt.Print("\n\n",sevices.ListAvailableBooks(),"\n\n")
+        Controller()
 	case 6:
 		fmt.Println("You chose to List Borrowed Books.")
 		fmt.Println("Enter member ID:  ")
@@ -106,17 +114,19 @@ lable1:
 			goto lable8
 		}
 		if !sevices.Checker(memberid) {
-			fmt.Println(sevices.ListBorrowedBooks(memberid))
+			fmt.Print("\n\n",sevices.ListBorrowedBooks(memberid),"\n\n")
 
 		} else {
 
 			fmt.Println("You are not a member :  ")
 
 		}
+        Controller()
 
 	default:
-		fmt.Println("Invalid choice. Please enter a number between 1 and 6.")
+		fmt.Println("Invalid choice. Please enter a number between 0 and 6.")
 		goto lable1
 	}
+
 
 }
