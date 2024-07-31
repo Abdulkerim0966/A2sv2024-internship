@@ -1,15 +1,26 @@
 Project Structure
 library_management/
-├── main.go
+
+├── main.
+
 ├── controllers/
+
 │   └── library_controller.go
+
 ├── models/
+
 │   ├── book.go
+
 │   └── member.go
+
 ├── services/
+
 │   └── library_service.go
+
 ├── docs/
+
 │   └── documentation.md
+
 └── go.mod
 
     Main File (main.go)
