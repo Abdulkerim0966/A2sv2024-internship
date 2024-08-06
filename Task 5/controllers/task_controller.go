@@ -49,7 +49,7 @@ func GetTasks(ctx *gin.Context){
 	tasks ,err :=data.GetAlldatabase()
 	if err!=nil{
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to retrieve document from database"})
-
+         return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"tasks": tasks})
 
@@ -59,12 +59,13 @@ func RemoveTask(ctx *gin.Context){
 	_,err :=data.FindTaskbyID(ctx)
 	if err != nil{
 		ctx.JSON(http.StatusNotFound, gin.H{"message": "Task not found"})
+		return 
 	}
 
 	err =data.DeleteTask(ctx)
 	if err!= nil {
 	ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to delete the document from database"})
-
+    return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "Task removed"})
 
@@ -76,11 +77,12 @@ func UpdatedTask(ctx *gin.Context){
 	_,err :=data.FindTaskbyID(ctx)
 	if err != nil{
 		ctx.JSON(http.StatusNotFound, gin.H{"message": "Task not found"})
+		return
 	}
 	err = data.UpdateDatabase(ctx)
 	if err!= nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to update the task"})
-	
+	    return
 		}
 		ctx.JSON(http.StatusOK, gin.H{"message": "Task succesfully updated"})
 
